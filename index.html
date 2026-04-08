@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infinity Love for You ❤️</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script
+      src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.10/dist/dotlottie-wc.js"
+      type="module"
+    ></script>
+
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: radial-gradient(
+          circle at center,
+          #250005 0%,
+          #050001 70%,
+          #000000 100%
+        );
+      }
+
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.8s ease-out;
+      }
+
+      #loading-screen.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #loading-screen h1 {
+        color: #ff2d55;
+        font-family: sans-serif;
+        font-size: 18px;
+        margin-top: -20px;
+        opacity: 0.6;
+      }
+
+      #spotify-card {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 300px;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 1s ease-out;
+        pointer-events: none;
+      }
+
+      #spotify-card.show {
+        opacity: 0.85;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      #spotify-card:hover {
+        opacity: 1;
+      }
+
+      /* RESPONSIVE UNTUK MOBILE */
+      @media (max-width: 600px) {
+        #spotify-card {
+          width: 85%; /* Menggunakan persentase agar tidak keluar layar */
+          max-width: 280px;
+          bottom: 15px;
+          left: 50%;
+          transform: translateX(-50%) translateY(20px); /* Tengahkan posisi di mobile */
+        }
+
+        #spotify-card.show {
+          transform: translateX(-50%) translateY(0);
+        }
+
+        /* Kecilkan tinggi iframe di mobile agar tidak menutupi animasi */
+        #spotify-card iframe {
+          height: 152px !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="loading-screen">
+      <dotlottie-wc
+        src="https://lottie.host/763a65d0-603a-481e-8cc0-dd2e60022d3c/K1bADyXyIa.lottie"
+        style="width: 300px; height: 300px"
+        autoplay
+        loop
+      ></dotlottie-wc>
+      <h1>Tunggu Sebentar Yaa ;3 ...</h1>
+    </div>
+
+    <div id="spotify-card">
+      <iframe
+        data-testid="embed-iframe"
+        style="border-radius: 12px"
+        src="https://open.spotify.com/embed/track/1JC0QGl24SXaGzKsNDkSk4?utm_source=generator"
+        width="100%"
+        height="152"
+        frameborder="0"
+        allowfullscreen=""
+        allow="
+          autoplay;
+          clipboard-write;
+          encrypted-media;
+          fullscreen;
+          picture-in-picture;
+        "
+        loading="lazy"
+      ></iframe>
+    </div>
+
+    <script>
+      // ==========================================
+      // PENGATURAN FOTO
+      // ==========================================
+      const userPhotos = [
+        // Masukan Foto Kamu Disini sesuai contoh format di bawah ini
+        // "image/3.jpeg",
+        // "image/4.jpeg",
+        // "image/8.jpeg",
+      ];
+      // ==========================================
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      document.body.appendChild(renderer.domElement);
+
+      // --- FUNGSI UTAMA MUNCULKAN KONTEN ---
+      function showContent() {
+        console.log("Memunculkan konten...");
+        setTimeout(() => {
+          const loaderScreen = document.getElementById("loading-screen");
+          if (loaderScreen) loaderScreen.classList.add("fade-out");
+
+          const spotify = document.getElementById("spotify-card");
+          if (spotify) spotify.classList.add("show");
+        }, 2000);
+      }
+
+      // --- LOGIKA LOADING ---
+      const loadingManager = new THREE.LoadingManager();
+
+      loadingManager.onLoad = () => {
+        showContent();
+      };
+
+      // JIKA FOTO KOSONG: Langsung jalankan showContent
+      // JIKA ADA FOTO: Biarkan loadingManager yang panggil saat selesai load
+      if (userPhotos.length === 0) {
+        showContent();
+      }
+
+      const loader = new THREE.TextureLoader(loadingManager);
+
+      // --- SISANYA KODE VISUAL (TEXT & HEARTS) ---
+      function createTextTexture(text, color) {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 512;
+        canvas.height = 150;
+        ctx.fillStyle = color;
+        ctx.font = "Bold 80px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 20;
+        ctx.fillText(text, 256, 80);
+        return new THREE.CanvasTexture(canvas);
+      }
+
+      const textMeshes = [];
+      const colors = ["#ff2d55", "#ffffff", "#87ceeb"];
+      for (let i = 0; i < 100; i++) {
+        const textMat = new THREE.MeshBasicMaterial({
+          map: createTextTexture("I Love You ♡⃛", colors[i % colors.length]),
+          transparent: true,
+          opacity: 0.7,
+          side: THREE.DoubleSide,
+        });
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(8, 2), textMat);
+        mesh.position.set(
+          Math.random() * 160 - 80,
+          Math.random() * 40 - 20,
+          -10,
+        );
+        mesh.userData.speed = Math.random() * 0.08 + 0.04;
+        scene.add(mesh);
+        textMeshes.push(mesh);
+      }
+
+      const photos = [];
+      if (userPhotos.length > 0) {
+        const extendedPhotos = [...userPhotos, ...userPhotos, ...userPhotos];
+        extendedPhotos.forEach((url, i) => {
+          loader.load(url, (tex) => {
+            const group = new THREE.Group();
+            const frame = new THREE.Mesh(
+              new THREE.PlaneGeometry(4.3, 5.3),
+              new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.2,
+              }),
+            );
+            group.add(frame);
+            const photo = new THREE.Mesh(
+              new THREE.PlaneGeometry(4, 5),
+              new THREE.MeshBasicMaterial({ map: tex }),
+            );
+            photo.position.z = 0.01;
+            group.add(photo);
+            group.position.set(40 + i * 12, (Math.random() - 0.5) * 20, -5);
+            group.userData.speed = 0.05 + Math.random() * 0.03;
+            scene.add(group);
+            photos.push(group);
+          });
+        });
+      }
+
+      const heartCount = 500;
+      const hearts = new THREE.InstancedMesh(
+        new THREE.PlaneGeometry(0.6, 0.6),
+        new THREE.MeshBasicMaterial({
+          map: createTextTexture("❤️", "#ff2d55"),
+          transparent: true,
+          opacity: 0.3,
+        }),
+        heartCount,
+      );
+      const dummy = new THREE.Object3D();
+      const heartData = [];
+      for (let i = 0; i < heartCount; i++) {
+        heartData.push({
+          x: Math.random() * 80 - 40,
+          y: Math.random() * 40 - 20,
+          z: -12,
+          s: 0.03 + Math.random() * 0.04,
+        });
+      }
+      scene.add(hearts);
+
+      camera.position.z = 20;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const time = Date.now() * 0.001;
+        textMeshes.forEach((t) => {
+          t.position.x -= t.userData.speed;
+          if (t.position.x < -70) t.position.x = 70;
+        });
+        photos.forEach((p) => {
+          p.position.x -= p.userData.speed;
+          if (p.position.x < -60) p.position.x = 60;
+        });
+        heartData.forEach((h, i) => {
+          h.x -= h.s;
+          if (h.x < -50) h.x = 50;
+          dummy.position.set(h.x, h.y, h.z);
+          dummy.rotation.z = time * 0.2;
+          dummy.updateMatrix();
+          hearts.setMatrixAt(i, dummy.matrix);
+        });
+        hearts.instanceMatrix.needsUpdate = true;
+        camera.position.x = -8 + Math.sin(time * 0.2) * 2;
+        camera.position.y = 1 + Math.cos(time * 0.1) * 1;
+        camera.lookAt(0, 0, 0);
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>
