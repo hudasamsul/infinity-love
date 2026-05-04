@@ -1,4 +1,4 @@
-# ♾️ Infinity Love
+# ❤️ Infinity Love
 
 <p align="center">
   <img src="QRcode.png" width="300" alt="QR Code">
